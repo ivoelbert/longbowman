@@ -1,0 +1,23 @@
+.start-screen {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #1b1b1b;
+
+    button {
+        border: none;
+        font-family: monospace;
+        text-transform: uppercase;
+        background-color: #ffffffa0;
+        border-radius: 8px;
+        padding: 25px 45px;
+        cursor: pointer;
+        font-size: 25px;
+
+        &:hover {
+            background-color: #ffffff90;
+        }
+    }
+}
