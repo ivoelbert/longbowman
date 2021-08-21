@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls, VRButton } from 'three-stdlib';
+import { Arrow } from './arrow';
 
 export class Longbowman {
     private scene: THREE.Scene;
@@ -14,8 +15,7 @@ export class Longbowman {
 
     private isThrowing: boolean;
     private aimIndicator: THREE.Line;
-    private arrow: THREE.Mesh;
-    private arrowVelocity: THREE.Vector3;
+    private arrow: Arrow;
 
     constructor() {
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -72,14 +72,14 @@ export class Longbowman {
         this.controller1Mesh = controllerMesh.clone();
         this.controller1Mesh.castShadow = true;
         this.controller1Mesh.receiveShadow = true;
-        this.controller1 = this.renderer.xr.getController(0);
+        this.controller1 = this.renderer.xr.getController(1);
         this.controller1.add(this.controller1Mesh);
         this.scene.add(this.controller1);
 
         this.controller2Mesh = controllerMesh.clone();
         this.controller2Mesh.castShadow = true;
         this.controller2Mesh.receiveShadow = true;
-        this.controller2 = this.renderer.xr.getController(1);
+        this.controller2 = this.renderer.xr.getController(0);
         this.controller2.add(this.controller2Mesh);
         this.scene.add(this.controller2);
 
@@ -93,17 +93,8 @@ export class Longbowman {
         this.aimIndicator.visible = false;
         this.controller2.add(this.aimIndicator);
 
-        const arrowGeom = new THREE.SphereBufferGeometry(0.02);
-        const arrowMat = new THREE.MeshPhongMaterial({
-            color: new THREE.Color(0x602020),
-        });
-        this.arrow = new THREE.Mesh(arrowGeom, arrowMat);
-        this.arrow.position.set(0, 0, 0);
-        this.scene.add(this.arrow);
-        this.arrow.castShadow = true;
-        this.arrow.receiveShadow = true;
-
-        this.arrowVelocity = new THREE.Vector3(0, 0, 0);
+        this.arrow = new Arrow();
+        this.scene.add(this.arrow.mesh);
     }
 
     get domElement() {
@@ -128,24 +119,13 @@ export class Longbowman {
 
     private render = () => {
         if (this.isThrowing) {
-            this.arrow.scale.setLength(2);
-            this.arrow.position.copy(this.controller2.position);
-            this.aimIndicator.lookAt(this.controller1.position);
-            this.aimIndicator.scale.z = this.controller1.position.distanceTo(
-                this.controller2.position
-            );
+            const c1Pos = this.controller1.position;
+            const c2Pos = this.controller2.position;
+            this.arrow.moveToThrowingPosition(c1Pos, c2Pos);
+            this.aimIndicator.lookAt(c1Pos);
+            this.aimIndicator.scale.z = c1Pos.distanceTo(c2Pos) * 2;
         } else {
-            this.arrow.scale.setLength(1);
-            this.arrowVelocity.y -= 0.002;
-            this.arrowVelocity.multiplyScalar(0.995);
-
-            const movement = this.arrowVelocity.clone().multiplyScalar(0.4);
-            this.arrow.position.add(movement);
-        }
-
-        if (this.arrow.position.y < 0.01) {
-            this.arrowVelocity.set(0, 0, 0);
-            this.arrow.position.y = 0.01;
+            this.arrow.fly();
         }
 
         this.renderer.render(this.scene, this.camera);
@@ -159,7 +139,7 @@ export class Longbowman {
     };
 
     private onSelectStart = () => {
-        if (this.controller1.position.distanceTo(this.controller2.position) < 0.1) {
+        if (this.controller1.position.distanceTo(this.controller2.position) < 0.15) {
             this.isThrowing = true;
             this.aimIndicator.visible = true;
         }
@@ -167,7 +147,7 @@ export class Longbowman {
 
     private onSelectEnd = () => {
         if (this.isThrowing) {
-            this.arrowVelocity = this.controller1.position.clone().sub(this.controller2.position);
+            this.arrow.throw(this.controller1.position.clone().sub(this.controller2.position));
         }
         this.isThrowing = false;
         this.aimIndicator.visible = false;
