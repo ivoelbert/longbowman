@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls, VRButton } from 'three-stdlib';
 import { Arrow } from './arrow';
+import { Environment } from './environment';
+import { Sky } from './sky';
 
 export class Longbowman {
     private scene: THREE.Scene;
@@ -25,8 +27,12 @@ export class Longbowman {
         this.renderer.shadowMap.enabled = true;
         this.renderer.xr.enabled = true;
 
+        const sky = new Sky();
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(0x808080);
+        this.scene.background = new THREE.Color().setHSL(0.6, 0, 1);
+        this.scene.fog = new THREE.Fog(this.scene.background, 1, 5000);
+        this.scene.fog.color.copy(sky.bottomColor);
+        this.scene.add(sky.mesh);
 
         this.camera = new THREE.PerspectiveCamera(
             50,
@@ -40,28 +46,8 @@ export class Longbowman {
         this.controls.target.set(0, 1.6, 0);
         this.controls.update();
 
-        const floorGeometry = new THREE.PlaneGeometry(50, 50);
-        const floorMaterial = new THREE.MeshStandardMaterial({
-            color: 0xeeeeee,
-            roughness: 1.0,
-            metalness: 0.0,
-        });
-        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-        floor.rotation.x = -Math.PI / 2;
-        floor.receiveShadow = true;
-        this.scene.add(floor);
-
-        this.scene.add(new THREE.HemisphereLight(0x808080, 0x606060));
-
-        const light = new THREE.DirectionalLight(0xffffff);
-        light.position.set(0, 6, 0);
-        light.castShadow = true;
-        light.shadow.camera.top = 2;
-        light.shadow.camera.bottom = -2;
-        light.shadow.camera.right = 2;
-        light.shadow.camera.left = -2;
-        light.shadow.mapSize.set(4096, 4096);
-        this.scene.add(light);
+        const environment = new Environment();
+        this.scene.add(environment.mesh);
 
         const geom = new THREE.SphereBufferGeometry(0.02);
         const material = new THREE.MeshPhongMaterial({

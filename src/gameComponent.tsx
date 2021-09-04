@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { assertExists } from './utils';
 import { useLazyRef } from './hooks/useLazyRef';
 import { Longbowman } from './game/Longbowman';
 
@@ -15,7 +14,9 @@ export const useLongbowman = (): CallbackRef => {
     }, [longbowman]);
 
     const callbackRef = (element: HTMLElement | null): void => {
-        assertExists(element).appendChild(longbowman.domElement);
+        if (element !== null) {
+            element.appendChild(longbowman.domElement);
+        }
     };
 
     return callbackRef;
