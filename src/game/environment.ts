@@ -76,6 +76,7 @@ export class Environment {
         }
     }
 
+    // TODO: Don't create a million different meshes. Reuse geom/mats.
     private addTree(angle: number) {
         const offsetSize = random(-0.4, 0.2);
         const treeGeom = new THREE.PlaneBufferGeometry(
@@ -97,6 +98,7 @@ export class Environment {
         this.mesh.add(tree);
     }
 
+    // TODO: Don't create a million different meshes. Reuse geom/mats.
     private addBush(angle: number) {
         const offsetSize = random(-0.4, 0.2);
         const bushGeom = new THREE.PlaneBufferGeometry(
