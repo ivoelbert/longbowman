@@ -1,15 +1,7 @@
 import * as THREE from 'three';
-import { chance, random } from './gameUtils';
 
 const GRASS_RADIUS = 8;
-const GRASS_HEIGHT = 0.5;
-const TREE_WIDTH = 1;
-const TREE_HEIGHT = 2;
-const BUSH_WIDTH = 0.75;
-const BUSH_HEIGHT = 0.75;
-const DECORATION_SLOTS_COUNT = 64;
-const DECORATION_FILL_PROBABILITY = 0.5;
-const TREE_TO_BUSH_PROBABILITY = 0.3;
+const GRASS_HEIGHT = 3;
 
 export class Environment {
     public mesh: THREE.Group;
@@ -25,7 +17,6 @@ export class Environment {
 
         this.addFloor();
         this.addGrass();
-        this.addDecoration();
     }
 
     private addFloor() {
@@ -42,7 +33,7 @@ export class Environment {
     }
 
     private addGrass() {
-        const grassTexture = this.textureLoader.load('textures/grass.png');
+        const grassTexture = this.textureLoader.load('textures/grassv2.png');
         const grassGeometry = new THREE.CylinderGeometry(
             GRASS_RADIUS,
             GRASS_RADIUS,
@@ -60,63 +51,5 @@ export class Environment {
         grass.position.y = GRASS_HEIGHT * 0.5;
 
         this.mesh.add(grass);
-    }
-
-    private addDecoration() {
-        for (let i = 0; i < DECORATION_SLOTS_COUNT; i++) {
-            if (!chance(DECORATION_FILL_PROBABILITY)) {
-                continue;
-            }
-            const angle = (i * Math.PI * 2) / DECORATION_SLOTS_COUNT;
-            if (chance(TREE_TO_BUSH_PROBABILITY)) {
-                this.addTree(angle);
-            } else {
-                this.addBush(angle);
-            }
-        }
-    }
-
-    // TODO: Don't create a million different meshes. Reuse geom/mats.
-    private addTree(angle: number) {
-        const offsetSize = random(-0.4, 0.2);
-        const treeGeom = new THREE.PlaneBufferGeometry(
-            TREE_WIDTH + offsetSize,
-            TREE_HEIGHT + offsetSize
-        );
-        const treeMat = new THREE.MeshBasicMaterial({
-            map: this.treeTexture,
-            transparent: true,
-        });
-
-        const tree = new THREE.Mesh(treeGeom, treeMat);
-
-        tree.position.x = Math.cos(angle) * (GRASS_RADIUS + 1);
-        tree.position.z = Math.sin(angle) * (GRASS_RADIUS + 1);
-        tree.lookAt(0, 0, 0);
-        tree.position.y = TREE_HEIGHT * 0.5;
-
-        this.mesh.add(tree);
-    }
-
-    // TODO: Don't create a million different meshes. Reuse geom/mats.
-    private addBush(angle: number) {
-        const offsetSize = random(-0.4, 0.2);
-        const bushGeom = new THREE.PlaneBufferGeometry(
-            BUSH_WIDTH + offsetSize,
-            BUSH_HEIGHT + offsetSize
-        );
-        const bushMat = new THREE.MeshBasicMaterial({
-            map: this.bushTexture,
-            transparent: true,
-        });
-
-        const bush = new THREE.Mesh(bushGeom, bushMat);
-
-        bush.position.x = Math.cos(angle) * (GRASS_RADIUS + 1);
-        bush.position.z = Math.sin(angle) * (GRASS_RADIUS + 1);
-        bush.lookAt(0, 0, 0);
-        bush.position.y = BUSH_HEIGHT * 0.5;
-
-        this.mesh.add(bush);
     }
 }
